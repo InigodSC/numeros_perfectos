@@ -1,6 +1,10 @@
 from time import time
 import csv
 from datetime import datetime
+import math
+import sys
+
+LOG10_2 = math.log10(2)
 
 def test_lucas_lehmer(p):
     """Verifica si 2^p - 1 es un número primo de Mersenne"""
@@ -24,11 +28,24 @@ def es_primo(n):
             return False
     return True
 
-def generar_perfectos_csv(cantidad, nombre_base_csv):
-    """Genera `cantidad` números perfectos y los escribe en un CSV.
+def _numero_de_digitos_por_bitlength(n):
+    """Calcula el número de dígitos en base 10 usando bit_length (sin convertir a str)."""
+    if n == 0:
+        return 1
+    # bit_length - 1 es el exponente del bit más alto
+    return int((n.bit_length() - 1) * LOG10_2) + 1
 
-    El CSV contiene: posicion, numero, primo_asociado, numero_de_digitos, tiempo_segundos
-    donde tiempo_segundos es el tiempo desde el inicio del proceso hasta que se generó ese número.
+def generar_perfectos_csv(cantidad, nombre_base_csv):
+    """
+    Genera `cantidad` números perfectos y los escribe en un CSV.
+
+    Columnas del CSV:
+      - posicion
+      - numero: si es razonablemente pequeño se guarda el número decimal completo,
+                si es muy grande se guarda la fórmula "2^(p-1)*(2^p-1)" para evitar conversiones pesadas.
+      - primo_asociado: el exponente p
+      - numero_de_digitos: número de dígitos en base 10 (calculado sin convertir a string)
+      - tiempo_segundos: tiempo transcurrido desde inicio hasta generación de ese número
     """
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     filename = f"{nombre_base_csv}_{timestamp}.csv"
@@ -49,9 +66,22 @@ def generar_perfectos_csv(cantidad, nombre_base_csv):
                     perfecto = (2**(p-1)) * (2**p - 1)
                     encontrados += 1
                     elapsed = round(time() - start_time, 6)
-                    digits = len(str(perfecto))
-                    # Escribimos el número como cadena para evitar problemas de formato
-                    writer.writerow([encontrados, str(perfecto), p, digits, elapsed])
+
+                    # calculamos el número de dígitos sin convertir a cadena
+                    digits = _numero_de_digitos_por_bitlength(perfecto)
+
+                    # Intentamos convertir a string sólo si es razonable; evitamos el ValueError de Python 3.11+
+                    numero_a_guardar = None
+                    try:
+                        # Intentar conversión; puede lanzar ValueError si supera el límite
+                        numero_a_guardar = str(perfecto)
+                    except (ValueError, OverflowError):
+                        # Fallback: guardamos la fórmula en vez del número decimal completo
+                        numero_a_guardar = f"2^{p-1}*(2^{p}-1)"
+                    except MemoryError:
+                        numero_a_guardar = f"2^{p-1}*(2^{p}-1)"
+
+                    writer.writerow([encontrados, numero_a_guardar, p, digits, elapsed])
                     print(f"  -> #{encontrados} generado (p={p}, digitos={digits}, tiempo={elapsed}s)")
             p += 1
 
