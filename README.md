@@ -1,58 +1,85 @@
-# Numeros Perfectos
+# Números Perfectos
 
-Repositorio con implementaciones en Python para explorar y comprobar números perfectos y primos de Mersenne. Incluye un enfoque de fuerza bruta y una implementación basada en el teorema de Euclides–Euler junto con la prueba de Lucas–Lehmer para primos de Mersenne.
+Este repositorio explora los números perfectos: qué son, cómo se encuentran y dos enfoques de implementación en Python (fuerza bruta y Euclides–Euler + Lucas–Lehmer). El README explica la teoría básica y da indicaciones de uso de los scripts incluidos.
 
-## Contenido
-- [EuclidesEuler_LucasLehmer.py](https://github.com/InigodSC/numeros_perfectos/blob/main/EuclidesEuler_LucasLehmer.py) — Implementación del enfoque basado en el teorema de Euclides–Euler y la prueba de Lucas–Lehmer para comprobar si 2^p − 1 es primo y generar números perfectos pares a partir de primos de Mersenne.
-- [fuerza_bruta.py](https://github.com/InigodSC/numeros_perfectos/blob/main/fuerza_bruta.py) — Búsqueda / comprobación de números perfectos mediante un método de fuerza bruta (suma de divisores).
-- [README.md](https://github.com/InigodSC/numeros_perfectos/blob/main/README.md) — Este archivo.
+## ¿Qué es un número perfecto?
 
-## Requisitos
-- Python 3.8+ (probablemente funciona en versiones posteriores).
-- No deberían ser necesarias librerías externas; si algún script las requiere, se indicará en la cabecera del propio fichero.
+Un número natural N se llama perfecto si es igual a la suma de sus divisores propios (todos los divisores positivos distintos de N).  
+Ejemplos pequeños bien conocidos:
+- 6 = 1 + 2 + 3
+- 28 = 1 + 2 + 4 + 7 + 14
+- 496, 8128, ...
 
-## Uso básico
-Abre una terminal y ejecuta los scripts con Python. Ejemplos genéricos:
+Los números perfectos pares están estrechamente relacionados con los primos de Mersenne (primos de la forma M_p = 2^p − 1 con p primo). No se conocen números perfectos impares (es un problema abierto si existen).
 
-- Ejecutar la comprobación por fuerza bruta:
+## Teorema de Euclides–Euler (números perfectos pares)
+
+Euclides y Euler demostraron la condición necesaria y suficiente que relaciona primos de Mersenne y números perfectos pares:
+
+- Si M_p = 2^p − 1 es primo (con p primo), entonces
+  N = 2^(p−1) * (2^p − 1)
+  es un número perfecto par.
+
+- Además, todo número perfecto par puede expresarse de esa forma para algún primo p tal que 2^p − 1 sea primo.
+
+Por tanto, la búsqueda de números perfectos pares se reduce a la búsqueda de primos de Mersenne.
+
+## Prueba de Lucas–Lehmer (comprobar primos de Mersenne)
+
+La prueba de Lucas–Lehmer es la prueba estándar y eficiente para verificar si M_p = 2^p − 1 es primo cuando p es primo:
+
+1. Definir s_0 = 4.
+2. Para n ≥ 0, s_{n+1} = s_n^2 − 2 (todo módulo M_p).
+3. M_p es primo si y sólo si s_{p−2} ≡ 0 (mod M_p).
+
+Esta prueba es mucho más rápida que hacer test de primalidad directo sobre M_p en la mayoría de casos prácticos.
+
+## Métodos implementados en este repositorio
+
+- [fuerza_bruta.py](https://github.com/InigodSC/numeros_perfectos/blob/main/fuerza_bruta.py)  
+  Método directo: para cada número n calcula la suma de sus divisores propios y compara con n. Es simple pero crece rápidamente en coste y solo es práctico para números pequeños.
+
+- [EuclidesEuler_LucasLehmer.py](https://github.com/InigodSC/numeros_perfectos/blob/main/EuclidesEuler_LucasLehmer.py)  
+  Implementa:
+  - Comprobación de primalidad del exponente p (simple).
+  - Prueba de Lucas–Lehmer para verificar si 2^p − 1 es primo.
+  - Generación de números perfectos pares mediante la fórmula de Euclides–Euler.
+  - (Versión modificada) solicita cuántos números generar, pide un nombre base para un CSV y guarda los resultados en `<nombre>_YYYYMMDD_HHMMSS.csv` con las columnas:
+    - posicion: índice (1, 2, 3, ...)
+    - numero: el número perfecto (como cadena)
+    - primo_asociado: el exponente p que produce el primo de Mersenne
+    - numero_de_digitos: número de dígitos de N
+    - tiempo_segundos: tiempo transcurrido desde el inicio del proceso hasta la generación de ese número
+
+## Ejecución (uso básico)
+
+Requisitos:
+- Python 3.8+ (probado en versiones recientes).
+- No se requieren librerías externas para las versiones incluidas.
+
+Ejemplos:
+
+- Ejecutar fuerza bruta:
 ```bash
 python3 fuerza_bruta.py
 ```
 
-- Ejecutar la versión basada en Euclides–Euler / Lucas–Lehmer:
+- Ejecutar Euclides–Euler + Lucas–Lehmer (versión interactiva que genera CSV):
 ```bash
 python3 EuclidesEuler_LucasLehmer.py
+# El script preguntará cuántos números generar y el nombre base del CSV.
 ```
 
-Nota: Los parámetros concretos (por ejemplo, límite de búsqueda, valor de p para Lucas–Lehmer, etc.) dependen de cómo estén implementados los scripts. Puedes:
-- Abrir los archivos para ver argumentos/funciones disponibles.
-- Ejecutar `python3 script.py -h` o revisar los comentarios en el código para obtener instrucciones específicas si se ha programado manejo de argumentos.
+Salida: el script generará un archivo CSV en el directorio de ejecución con el nombre proporcionado más la fecha/hora.
 
-## Explicación rápida de los métodos incluidos
+Advertencias:
+- Los números perfectos crecen muy rápido; calcular muchos de ellos requiere exponentes p grandes y un coste de cómputo y memoria elevado.
+- La prueba de Lucas–Lehmer trabaja con enteros muy grandes (2^p − 1) y puede consumir tiempo y memoria si p es grande.
 
-- Teorema de Euclides–Euler (números perfectos pares):
-  - Un número par N es perfecto si y sólo si N = 2^(p−1) * (2^p − 1) donde (2^p − 1) es primo (un primo de Mersenne).
-  - Por tanto, buscar números perfectos pares se reduce a buscar primos de Mersenne.
+## Ejemplo teórico
 
-- Prueba de Lucas–Lehmer (para primos de Mersenne M_p = 2^p − 1, p primo):
-  - Define la sucesión: s_0 = 4, s_{n+1} = s_n^2 − 2 (mod M_p).
-  - M_p es primo si y solo si s_{p−2} ≡ 0 (mod M_p).
-  - Esta prueba es eficiente y el método recomendado para comprobar primos de Mersenne en rangos grandes.
+Para p = 7:
+- M_7 = 2^7 − 1 = 127 (es primo).
+- Número perfecto: 2^(7−1) * (2^7 − 1) = 2^6 * 127 = 64 * 127 = 8128.
 
-- Fuerza bruta:
-  - Consiste en calcular la suma propia de divisores (excluyendo el número) y comparar con el número. Es conceptualmente simple pero crece rápido en coste y sólo es práctico para números pequeños.
-
-## Ejemplos
-- Si el script `EuclidesEuler_LucasLehmer.py` acepta un parámetro `p`, un ejemplo típico sería:
-```bash
-python3 EuclidesEuler_LucasLehmer.py 7
-```
-(esto comprobaría si 2^7 − 1 = 127 es primo y, si lo es, reportaría el número perfecto asociado 2^(7−1) * 127 = 8128).
-
-- Para `fuerza_bruta.py`, ejecutar sin argumentos podría listar números perfectos pequeños detectados en un rango predefinido por el script.
-
-(Revisa los scripts para confirmar los nombres y formatos de los argumentos.)
-
-## Testing / Validación
-- Para valores pequeños puedes contrastar resultados con listas conocidas de números perfectos: 6, 28, 496, 8128, ...
-- Para probar la prueba de Lucas–Lehmer, usa p = 2, 3, 5, 7, 13, ... donde algunos 2^p−1 son primos de Mersenne conocidos.
+Tu script basado en Lucas–Lehmer detectará p = 7 como generador del cuarto número perfecto (8128) y lo guardará en el CSV con su tiempo de generación y número de dígitos.
